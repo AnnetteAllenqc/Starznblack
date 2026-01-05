@@ -1,0 +1,1017 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Stars in Black | Quad Cities Nonprofit</title>
+  <meta name="description" content="Stars in Black is a nonprofit organization serving Davenport, Iowa and the Quad Cities with hot meals, food pantry support, and community outreach." />
+
+  <style>
+    :root{
+      --bg:#07070a;
+      --bg2:#0b0b10;
+      --card:rgba(15,15,22,.72);
+      --stroke:rgba(255,255,255,.10);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.70);
+      --gold:#d4af37;
+      --gold2:#f2d27a;
+      --shadow:rgba(0,0,0,.55);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 50% -10%, rgba(212,175,55,.18), transparent 55%),
+                  radial-gradient(900px 500px at 15% 30%, rgba(242,210,122,.10), transparent 60%),
+                  radial-gradient(900px 500px at 85% 55%, rgba(212,175,55,.08), transparent 62%),
+                  linear-gradient(180deg, var(--bg), var(--bg2));
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    /* Canvas starfield layer */
+    #starfield{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:-3;
+      display:block;
+      background:transparent;
+    }
+
+    /* Soft glow + vignette overlay */
+    .vignette{
+      position:fixed;
+      inset:-2px;
+      pointer-events:none;
+      z-index:-2;
+      background:
+        radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.06), transparent 60%),
+        radial-gradient(900px 600px at 50% 100%, rgba(0,0,0,.55), transparent 65%),
+        radial-gradient(1200px 800px at 50% 50%, transparent 55%, rgba(0,0,0,.65));
+      mix-blend-mode: normal;
+    }
+
+    /* Floating star outlines */
+    .float-stars{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:-1;
+      opacity:.55;
+      filter: drop-shadow(0 18px 45px rgba(0,0,0,.55));
+    }
+    .float-stars svg{
+      position:absolute;
+      width:180px;
+      height:180px;
+      stroke: rgba(212,175,55,.25);
+      fill: rgba(212,175,55,.05);
+      animation: drift 18s linear infinite;
+    }
+    .float-stars svg:nth-child(1){left:6%; top:18%; animation-duration: 22s; transform: rotate(12deg);}
+    .float-stars svg:nth-child(2){left:78%; top:22%; animation-duration: 26s; transform: rotate(-18deg);}
+    .float-stars svg:nth-child(3){left:16%; top:70%; animation-duration: 30s; transform: rotate(24deg);}
+    .float-stars svg:nth-child(4){left:70%; top:74%; animation-duration: 34s; transform: rotate(-8deg);}
+    @keyframes drift{
+      0%{ transform: translate3d(0,0,0) rotate(0deg); opacity:.35;}
+      50%{ transform: translate3d(0,-26px,0) rotate(12deg); opacity:.65;}
+      100%{ transform: translate3d(0,0,0) rotate(0deg); opacity:.35;}
+    }
+
+    /* Top nav */
+    .nav{
+      position:sticky;
+      top:0;
+      z-index:10;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid var(--stroke);
+      background: rgba(8,8,12,.62);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 200px;
+    }
+
+    .brand-badge{
+      width:34px;
+      height:34px;
+      border-radius:12px;
+      border:1px solid rgba(212,175,55,.38);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(242,210,122,.35), transparent 55%),
+        radial-gradient(circle at 60% 70%, rgba(212,175,55,.20), transparent 60%),
+        rgba(10,10,14,.7);
+      position:relative;
+      overflow:hidden;
+      box-shadow: 0 12px 24px rgba(0,0,0,.35);
+    }
+    .brand-badge::after{
+      content:"";
+      position:absolute;
+      inset:-40%;
+      background: conic-gradient(from 180deg, transparent 0 40%, rgba(212,175,55,.28) 55%, transparent 70% 100%);
+      animation: spin 6s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .brand-title{
+      display:flex;
+      flex-direction:column;
+      line-height:1.05;
+    }
+    .brand-title strong{
+      letter-spacing:.4px;
+      font-size:14px;
+    }
+    .brand-title span{
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    .nav a{
+      color:rgba(255,255,255,.86);
+      text-decoration:none;
+      font-weight:600;
+      font-size:13px;
+      padding:10px 10px;
+      border-radius:12px;
+      transition: transform .2s ease, background .2s ease, opacity .2s ease;
+      opacity:.86;
+    }
+    .nav a:hover{
+      opacity:1;
+      background: rgba(212,175,55,.08);
+      transform: translateY(-1px);
+    }
+
+    .nav .actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      border:1px solid var(--stroke);
+      background: rgba(12,12,18,.55);
+      color:rgba(255,255,255,.92);
+      padding:10px 14px;
+      border-radius:14px;
+      text-decoration:none;
+      font-weight:750;
+      letter-spacing:.2px;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-2px); }
+    .btn.primary{
+      border-color: rgba(212,175,55,.55);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(242,210,122,.22), transparent 50%),
+        linear-gradient(180deg, rgba(212,175,55,.26), rgba(212,175,55,.08));
+      box-shadow: 0 18px 38px rgba(0,0,0,.35);
+    }
+    .btn.ghost{
+      background: rgba(12,12,18,.28);
+      border-color: rgba(255,255,255,.12);
+    }
+
+    /* Layout */
+    .container{
+      width:min(1100px, calc(100% - 36px));
+      margin:0 auto;
+    }
+
+    .hero{
+      padding:64px 0 24px;
+      position:relative;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    @media (max-width: 920px){
+      .hero-grid{grid-template-columns: 1fr; }
+      .nav nav{ display:none; }
+      .brand{ min-width:auto; }
+    }
+
+    .panel{
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(18,18,26,.70), rgba(10,10,16,.55));
+      box-shadow: 0 25px 60px rgba(0,0,0,.40);
+      overflow:hidden;
+      position:relative;
+    }
+    .panel::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      background:
+        radial-gradient(700px 240px at 20% 0%, rgba(242,210,122,.16), transparent 60%),
+        radial-gradient(700px 260px at 80% 10%, rgba(212,175,55,.12), transparent 60%);
+      pointer-events:none;
+    }
+
+    .hero-left{
+      padding:28px 26px 22px;
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 12px;
+      border:1px solid rgba(212,175,55,.35);
+      border-radius:999px;
+      background: rgba(212,175,55,.08);
+      color: rgba(255,255,255,.88);
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size:12px;
+      margin-bottom:16px;
+    }
+    .kicker .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: var(--gold);
+      box-shadow: 0 0 0 4px rgba(212,175,55,.16);
+    }
+
+    h1{
+      margin:0;
+      font-size: clamp(34px, 4.2vw, 52px);
+      letter-spacing:.2px;
+      line-height:1.04;
+    }
+    .gold{
+      background: linear-gradient(180deg, var(--gold2), var(--gold));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow: 0 10px 30px rgba(212,175,55,.10);
+    }
+
+    .lead{
+      margin:12px 0 18px;
+      font-size: 16.5px;
+      color: rgba(255,255,255,.78);
+      max-width: 60ch;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top: 10px;
+    }
+
+    .hero-bullets{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:18px;
+    }
+
+    @media (max-width: 520px){
+      .hero-bullets{grid-template-columns:1fr;}
+    }
+
+    .pill{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:12px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      background: rgba(12,12,18,.35);
+    }
+    .pill .icon{
+      width:28px;height:28px;border-radius:12px;
+      border:1px solid rgba(212,175,55,.35);
+      background: rgba(212,175,55,.10);
+      display:flex;align-items:center;justify-content:center;
+      flex:0 0 auto;
+      box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    }
+    .pill strong{display:block; font-size:13px;}
+    .pill span{display:block; font-size:12.5px; color:var(--muted); margin-top:2px; line-height:1.35}
+
+    /* Right panel */
+    .hero-right{
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .logo-card{
+      padding:16px;
+      display:flex;
+      gap:14px;
+      align-items:center;
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,10,16,.42);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo-card::after{
+      content:"";
+      position:absolute;
+      inset:-70%;
+      background: radial-gradient(circle at 50% 50%, rgba(212,175,55,.18), transparent 55%);
+      animation: pulse 5.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(.92); opacity:.35}
+      50%{ transform: scale(1.02); opacity:.65}
+    }
+
+    .logo{
+      width:84px;
+      height:84px;
+      border-radius:18px;
+      border:1px solid rgba(212,175,55,.35);
+      background: linear-gradient(180deg, rgba(212,175,55,.18), rgba(212,175,55,.06));
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      box-shadow: 0 22px 50px rgba(0,0,0,.35);
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .logo-fallback{
+      display:none;
+      font-weight:900;
+      letter-spacing:.6px;
+      color: rgba(255,255,255,.92);
+      text-align:center;
+      padding:10px;
+      line-height:1.1;
+    }
+
+    .logo-text h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .logo-text p{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .mini-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+
+    .info{
+      padding:14px;
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,10,16,.34);
+    }
+    .info h3{
+      margin:0 0 8px;
+      font-size:14px;
+      color: rgba(255,255,255,.88);
+      letter-spacing:.2px;
+    }
+    .info p{
+      margin:0;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    .info a{ color: var(--gold2); font-weight:800; }
+
+    /* Sections */
+    .section{
+      padding:30px 0 0;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:14px;
+      margin: 22px 0 12px;
+    }
+    .section-head h2{
+      margin:0;
+      font-size: 24px;
+      letter-spacing:.2px;
+    }
+    .section-head p{
+      margin:0;
+      color: var(--muted);
+      max-width: 62ch;
+      font-size:13.5px;
+      line-height:1.4;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:12px;
+    }
+
+    .card{
+      grid-column: span 4;
+      padding:16px;
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(12,12,18,.38);
+      box-shadow: 0 18px 45px rgba(0,0,0,.28);
+      position:relative;
+      overflow:hidden;
+      transform: translateY(12px);
+      opacity:0;
+      transition: transform .6s cubic-bezier(.2,.8,.2,1), opacity .6s ease;
+    }
+    .card.reveal{
+      transform: translateY(0);
+      opacity:1;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:
+        radial-gradient(600px 220px at 20% 10%, rgba(212,175,55,.14), transparent 60%),
+        radial-gradient(520px 240px at 80% 0%, rgba(242,210,122,.10), transparent 62%);
+      pointer-events:none;
+      opacity:.75;
+    }
+    .card h3{
+      margin:0 0 8px;
+      color: var(--gold2);
+      letter-spacing:.15px;
+    }
+    .card p{
+      margin:0;
+      color: rgba(255,255,255,.78);
+      line-height:1.5;
+      font-size: 13.5px;
+    }
+    .card .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(212,175,55,.28);
+      background: rgba(212,175,55,.06);
+      color: rgba(255,255,255,.86);
+      font-weight:800;
+      font-size:12px;
+    }
+
+    @media (max-width: 980px){
+      .card{ grid-column: span 6; }
+    }
+    @media (max-width: 640px){
+      .card{ grid-column: span 12; }
+    }
+
+    /* Big CTA */
+    .cta-panel{
+      margin: 18px 0 50px;
+      padding: 18px;
+      border-radius: 22px;
+      border:1px solid rgba(212,175,55,.35);
+      background:
+        radial-gradient(800px 240px at 20% 0%, rgba(242,210,122,.16), transparent 60%),
+        radial-gradient(800px 300px at 80% 30%, rgba(212,175,55,.12), transparent 62%),
+        rgba(10,10,16,.42);
+      box-shadow: 0 28px 70px rgba(0,0,0,.42);
+      position:relative;
+      overflow:hidden;
+      transform: translateY(12px);
+      opacity:0;
+      transition: transform .7s cubic-bezier(.2,.8,.2,1), opacity .7s ease;
+    }
+    .cta-panel.reveal{ transform: translateY(0); opacity:1; }
+
+    .cta-grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      align-items:center;
+    }
+    @media (max-width: 860px){ .cta-grid{grid-template-columns:1fr;} }
+
+    .cta-panel h2{
+      margin:0 0 8px;
+      font-size: 24px;
+      letter-spacing:.2px;
+    }
+    .cta-panel p{
+      margin:0;
+      color: rgba(255,255,255,.78);
+      line-height:1.55;
+      max-width: 70ch;
+      font-size: 13.8px;
+    }
+
+    .cta-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    @media (max-width: 860px){ .cta-actions{justify-content:flex-start;} }
+
+    /* Footer */
+    footer{
+      padding: 22px 0 34px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* Small sparkle animation for inline stars */
+    .sparkle{
+      display:inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 6px;
+      background: radial-gradient(circle at 30% 30%, rgba(242,210,122,.95), rgba(212,175,55,.55) 45%, transparent 70%);
+      border-radius: 999px;
+      box-shadow: 0 0 0 4px rgba(212,175,55,.10);
+      animation: twinkle 1.8s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .sparkle:nth-of-type(2){ animation-delay: .45s; }
+    .sparkle:nth-of-type(3){ animation-delay: .9s; }
+    @keyframes twinkle{
+      0%,100%{ transform: scale(.85); opacity:.55; }
+      50%{ transform: scale(1.12); opacity:1; }
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce){
+      html{scroll-behavior:auto}
+      .float-stars svg, .brand-badge::after, .logo-card::after, .sparkle{animation:none !important}
+      .card, .cta-panel{transition:none !important; opacity:1 !important; transform:none !important}
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Animated starfield -->
+  <canvas id="starfield" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <!-- Floating decorative star outlines -->
+  <div class="float-stars" aria-hidden="true">
+    <!-- Simple star outline SVG reused -->
+    <svg viewBox="0 0 100 100">
+      <path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 72 L22 92 L33 58 L5 38 L39 38 Z"
+        stroke-width="1.6"/>
+    </svg>
+    <svg viewBox="0 0 100 100">
+      <path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 72 L22 92 L33 58 L5 38 L39 38 Z"
+        stroke-width="1.6"/>
+    </svg>
+    <svg viewBox="0 0 100 100">
+      <path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 72 L22 92 L33 58 L5 38 L39 38 Z"
+        stroke-width="1.6"/>
+    </svg>
+    <svg viewBox="0 0 100 100">
+      <path d="M50 6 L61 38 L95 38 L67 58 L78 92 L50 72 L22 92 L33 58 L5 38 L39 38 Z"
+        stroke-width="1.6"/>
+    </svg>
+  </div>
+
+  <!-- Nav -->
+  <header class="nav">
+    <div class="brand">
+      <div class="brand-badge" aria-hidden="true"></div>
+      <div class="brand-title">
+        <strong>Stars in Black</strong>
+        <span>Davenport, Iowa • Quad Cities</span>
+      </div>
+    </div>
+
+    <nav aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#impact">What We Do</a>
+      <a href="#donate">Donate</a>
+      <a href="#join">Join</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="actions">
+      <a class="btn ghost" href="tel:+15639493877" title="Call us">Call</a>
+      <a class="btn primary" href="#donate" title="Donate">Donate</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main class="container">
+    <section class="hero" id="top">
+      <div class="hero-grid">
+        <div class="panel hero-left">
+          <div class="kicker">
+            <span class="dot" aria-hidden="true"></span>
+            Community nonprofit serving the Quad Cities & surrounding areas
+          </div>
+
+          <h1>
+            <span class="gold">Stars in Black</span>
+            <span class="sparkle" aria-hidden="true"></span>
+            <span class="sparkle" aria-hidden="true"></span>
+            <span class="sparkle" aria-hidden="true"></span>
+            <br />
+            Giving back with food, support, and hope.
+          </h1>
+
+          <p class="lead">
+            Based in <strong>Davenport, Iowa</strong>, Stars in Black is a nonprofit organization focused on real help for real people —
+            including <strong>hot meals for the homeless</strong>, <strong>food pantry support</strong>, and community outreach across the
+            <strong>Quad Cities</strong> and surrounding areas.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn primary" href="#donate">Support the Mission</a>
+            <a class="btn" href="#join">Join the Team</a>
+            <a class="btn ghost" href="#impact">See What We Do</a>
+          </div>
+
+          <div class="hero-bullets" id="about">
+            <div class="pill">
+              <div class="icon" aria-hidden="true">★</div>
+              <div>
+                <strong>Hot Meals</strong>
+                <span>Serving warm, ready-to-eat meals to people who need it most.</span>
+              </div>
+            </div>
+
+            <div class="pill">
+              <div class="icon" aria-hidden="true">★</div>
+              <div>
+                <strong>Food Pantry Support</strong>
+                <span>Helping families access groceries, essentials, and community resources.</span>
+              </div>
+            </div>
+
+            <div class="pill">
+              <div class="icon" aria-hidden="true">★</div>
+              <div>
+                <strong>Community Outreach</strong>
+                <span>Showing up with care, dignity, and consistent support across the area.</span>
+              </div>
+            </div>
+
+            <div class="pill">
+              <div class="icon" aria-hidden="true">★</div>
+              <div>
+                <strong>Volunteer Team</strong>
+                <span>Join us—help serve meals, organize donations, and impact lives.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="panel hero-right" aria-label="Quick Info">
+          <div class="logo-card">
+            <div class="logo" title="Stars in Black logo">
+              <!-- Put your logo in the same folder and rename it to logo.png -->
+              <img id="logoImg" src="logo.png" alt="Stars in Black logo" onerror="this.style.display='none';document.querySelector('.logo-fallback').style.display='block';" />
+              <div class="logo-fallback">Stars<br/>in<br/>Black</div>
+            </div>
+            <div class="logo-text">
+              <h2>Stars in Black</h2>
+              <p>Nonprofit organization for the community • Davenport, IA • Quad Cities</p>
+            </div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="info" id="contact">
+              <h3>Founder & Contact</h3>
+              <p>
+                <strong>AnnetteAllen</strong><br/>
+                Phone: <a href="tel:+15639493877">563-949-3877</a><br/>
+                Email: <a href="mailto:Coco.24aa13@gmail.com">Coco.24aa13@gmail.com</a>
+              </p>
+            </div>
+
+            <div class="info">
+              <h3>Service Area</h3>
+              <p>
+                Based out of <strong>Davenport, Iowa</strong>, serving the <strong>Quad Cities</strong> and surrounding areas.
+              </p>
+            </div>
+
+            <div class="info">
+              <h3>Want to help?</h3>
+              <p>
+                If you’d like to <strong>donate</strong> or <strong>join the team</strong>, reach out anytime.
+                We’ll connect you with the next steps.
+              </p>
+              <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                <a class="btn primary" href="#donate">Donate</a>
+                <a class="btn" href="#join">Join</a>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Impact -->
+    <section class="section" id="impact">
+      <div class="section-head">
+        <div>
+          <h2>What We Do</h2>
+          <p>Practical support, consistent outreach, and community love—built to make an impact where it matters.</p>
+        </div>
+      </div>
+
+      <div class="cards">
+        <article class="card">
+          <h3>Hot Meals for the Homeless</h3>
+          <p>
+            We provide warm meals with dignity and care—because nobody should be left hungry.
+          </p>
+          <div class="tag">★ Community Meals</div>
+        </article>
+
+        <article class="card">
+          <h3>Food Pantry & Grocery Support</h3>
+          <p>
+            We help distribute groceries and essential items to families and individuals facing hard times.
+          </p>
+          <div class="tag">★ Food Access</div>
+        </article>
+
+        <article class="card">
+          <h3>Neighborhood Outreach</h3>
+          <p>
+            We partner with the community to identify needs, coordinate support, and show up consistently.
+          </p>
+          <div class="tag">★ Quad Cities</div>
+        </article>
+
+        <article class="card">
+          <h3>Donation Drives</h3>
+          <p>
+            From food to essentials, we organize donation efforts that go directly back into the community.
+          </p>
+          <div class="tag">★ Give Back</div>
+        </article>
+
+        <article class="card">
+          <h3>Volunteer Opportunities</h3>
+          <p>
+            Join the team to serve meals, help organize resources, support events, and uplift neighbors.
+          </p>
+          <div class="tag">★ Join Us</div>
+        </article>
+
+        <article class="card">
+          <h3>Community Care</h3>
+          <p>
+            Our focus is people—showing love through action, support, and consistent presence.
+          </p>
+          <div class="tag">★ Impact</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Donate -->
+    <section class="section" id="donate">
+      <div class="section-head">
+        <div>
+          <h2>Donate</h2>
+          <p>
+            Your support helps us provide meals, groceries, and outreach throughout Davenport and the Quad Cities.
+          </p>
+        </div>
+      </div>
+
+      <div class="cta-panel">
+        <div class="cta-grid">
+          <div>
+            <h2><span class="gold">Fuel the Mission</span> — Give Back Today</h2>
+            <p>
+              Want to donate? Contact us and we’ll provide the best way to contribute (cash support, food donations,
+              volunteer time, or supplies). Every contribution helps us reach more people.
+            </p>
+            <p style="margin-top:10px;">
+              Phone: <a href="tel:+15639493877" style="color:var(--gold2); font-weight:900; text-decoration:none;">563-949-3877</a>
+              &nbsp;•&nbsp;
+              Email: <a href="mailto:Coco.24aa13@gmail.com" style="color:var(--gold2); font-weight:900; text-decoration:none;">Coco.24aa13@gmail.com</a>
+            </p>
+          </div>
+
+          <div class="cta-actions">
+            <a class="btn primary" href="tel:+15639493877">Call to Donate</a>
+            <a class="btn" href="mailto:Coco.24aa13@gmail.com?subject=Stars%20in%20Black%20Donation%20Inquiry">Email to Donate</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Join -->
+    <section class="section" id="join">
+      <div class="section-head">
+        <div>
+          <h2>Join the Team</h2>
+          <p>
+            Want to volunteer or partner with us? We welcome helping hands and community allies.
+          </p>
+        </div>
+      </div>
+
+      <div class="cta-panel">
+        <div class="cta-grid">
+          <div>
+            <h2><span class="gold">Be the Difference</span> in the Quad Cities</h2>
+            <p>
+              If you’d like to join Stars in Black—volunteering, donating supplies, helping with outreach, or supporting events—reach out.
+              We’ll connect you with upcoming opportunities.
+            </p>
+            <p style="margin-top:10px;">
+              Contact: <strong>AnnetteAllen</strong><br/>
+              Phone: <a href="tel:+15639493877" style="color:var(--gold2); font-weight:900; text-decoration:none;">563-949-3877</a><br/>
+              Email: <a href="mailto:Coco.24aa13@gmail.com?subject=Joining%20Stars%20in%20Black" style="color:var(--gold2); font-weight:900; text-decoration:none;">Coco.24aa13@gmail.com</a>
+            </p>
+          </div>
+
+          <div class="cta-actions">
+            <a class="btn primary" href="mailto:Coco.24aa13@gmail.com?subject=I%20want%20to%20join%20Stars%20in%20Black&body=Name%3A%0AHow%20I%20want%20to%20help%3A%0AAvailability%3A%0A">Email to Join</a>
+            <a class="btn" href="tel:+15639493877">Call to Join</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;">
+          <div>
+            © <span id="year"></span> Stars in Black • Davenport, Iowa • Serving the Quad Cities
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="btn ghost" href="#top">Back to top</a>
+            <a class="btn ghost" href="mailto:Coco.24aa13@gmail.com">Email</a>
+            <a class="btn ghost" href="tel:+15639493877">Call</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // ====== Year ======
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // ====== Reveal on scroll ======
+    const revealTargets = [...document.querySelectorAll(".card, .cta-panel")];
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) e.target.classList.add("reveal");
+      }
+    }, { threshold: 0.12 });
+
+    revealTargets.forEach(el => io.observe(el));
+
+    // ====== Starfield canvas ======
+    const canvas = document.getElementById("starfield");
+    const ctx = canvas.getContext("2d");
+    let w, h, dpr;
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function resize(){
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = canvas.width = Math.floor(window.innerWidth * dpr);
+      h = canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+    }
+    window.addEventListener("resize", resize, { passive:true });
+    resize();
+
+    // Stars
+    const STAR_COUNT = prefersReducedMotion ? 140 : 260;
+    const stars = [];
+    const goldChance = 0.12;
+
+    function rand(min, max){ return Math.random() * (max - min) + min; }
+
+    function makeStar(){
+      const z = rand(0.25, 1.0); // depth
+      return {
+        x: rand(0, w),
+        y: rand(0, h),
+        r: rand(0.6, 1.8) * dpr * (0.55 + z),
+        vx: rand(-0.02, 0.04) * dpr * (0.35 + z),
+        vy: rand(-0.02, 0.02) * dpr * (0.35 + z),
+        a: rand(0.25, 0.95),
+        tw: rand(0.004, 0.02) * (0.4 + z),
+        isGold: Math.random() < goldChance
+      };
+    }
+
+    for(let i=0;i<STAR_COUNT;i++) stars.push(makeStar());
+
+    // Gentle parallax with mouse
+    let mx = 0, my = 0;
+    window.addEventListener("mousemove", (e) => {
+      mx = (e.clientX / window.innerWidth - 0.5);
+      my = (e.clientY / window.innerHeight - 0.5);
+    }, { passive:true });
+
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+
+      // background subtle gradient overlay
+      const g = ctx.createRadialGradient(w*0.5, h*0.15, 0, w*0.5, h*0.15, Math.max(w,h));
+      g.addColorStop(0, "rgba(212,175,55,0.06)");
+      g.addColorStop(0.35, "rgba(0,0,0,0)");
+      g.addColorStop(1, "rgba(0,0,0,0.55)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,w,h);
+
+      // stars
+      for(const s of stars){
+        // twinkle
+        s.a += s.tw * (Math.random() > 0.5 ? 1 : -1);
+        s.a = Math.max(0.15, Math.min(1, s.a));
+
+        // drift
+        if(!prefersReducedMotion){
+          s.x += s.vx;
+          s.y += s.vy;
+        }
+
+        // wrap
+        if(s.x < -20) s.x = w + 20;
+        if(s.x > w + 20) s.x = -20;
+        if(s.y < -20) s.y = h + 20;
+        if(s.y > h + 20) s.y = -20;
+
+        // parallax offset
+        const px = mx * 22 * dpr * (0.3 + (s.r/3));
+        const py = my * 18 * dpr * (0.3 + (s.r/3));
+
+        // glow
+        ctx.beginPath();
+        ctx.arc(s.x + px, s.y + py, s.r, 0, Math.PI*2);
+
+        if(s.isGold){
+          ctx.fillStyle = `rgba(212,175,55,${0.25*s.a})`;
+          ctx.shadowColor = "rgba(212,175,55,0.35)";
+          ctx.shadowBlur = 10 * dpr;
+        }else{
+          ctx.fillStyle = `rgba(255,255,255,${0.22*s.a})`;
+          ctx.shadowColor = "rgba(255,255,255,0.22)";
+          ctx.shadowBlur = 8 * dpr;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      requestAnimationFrame(draw);
+    }
+    draw();
+  </script>
+</body>
+</html>
